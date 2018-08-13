@@ -1,0 +1,308 @@
+前期准备
+    1. 安装node.js
+        建议安装最新版本，如果是低版本的话可能有些功能会缺失
+    2. 安装vue-cli
+        需要安装node.js作为前提，在windows下运行cmd，输入npm install -g vue-cli
+        回车就执行安装命令，输入vue回车，可以查看相关操作
+    3. 安装webpack模版
+        输入vue init webpack sell   // 这里的sell是项目名称，可以自定
+        执行命令后会有一些确定提示：
+        ? Project name eleme-app  // 确定项目名字，回车即可
+        ? Project description A Vue.js project  // 添加项目描述，可以自行添加（英文描述）
+        ? Author xxx <xxx@xx.com>  // 自己的github名字以及地址
+        ? Vue build (Use arrow keys)  // 回车即可
+        ? Vue build standalone  // 回车即可
+        ? Install vue-router? Yes  // 因为项目要用到路由，所以输入y，回车
+        ? Use ESLint to lint your code? Yes  //需要用到代码风格管理，输入y，回车
+        ? Pick an ESLint preset Standard  // 回车即可
+        ? Set up unit tests No  // 本项目没有用到单元测试，所以输入n，回车
+        ? Setup e2e tests with Nightwatch? No  // 这个也不需要
+        ? Should we run `npm install` for you after the project has been created? (recommended) npm  // 回车即可
+
+         vue-cli · Generated "eleme-app".
+
+        到这里等待下载安装即可
+    4. 添加依赖
+        cmd进入到项目所在文件夹，执行npm install 回车，等待安装
+        安装完成之后，输入npm run dev 回车，等待项目运行，当出现
+         I  Your application is running here: http://localhost:8080  这句提示之后，
+        就可以在浏览器输入上面的http地址了，项目成功
+
+mock数据（模拟后台数据）
+    1. 在这里，vue2.x的版本应该是在项目所在文件夹\build\webpack.dev.conf.js这个文件下面配置，
+        教程的版本是早期版本，vue-cli在bulid目录下面有dev-server.js和dev-client.js两文件,请求本地数据在dev-server.js里面配置，
+        最新的脚手架里面已经去掉了这两个文件，改用webpack.dev.conf.js代替。
+    2. 在const portfinder = require(‘portfinder’)下面加入：
+        const express = require('express')
+        const app = express()
+        var appData = require('../data.json')
+        var seller = appData.seller
+        var goods = appData.goods
+        var ratings = appData.ratings
+        var apiRoutes = express.Router()
+        app.use('/api', apiRoutes)
+
+        另外，在devServer下面加入
+        before(app) {
+          app.get('/api/seller', (req, res) => {
+            res.json({
+              errno: 0,
+              data: seller
+            })
+          }),
+          app.get('/api/goods', (req, res) => {
+            res.json({
+              errno: 0,
+              data: goods
+            })
+          }),
+          app.get('/api/ratings', (req, res) => {
+            res.json({
+              errno: 0,
+              data: ratings
+            })
+          })
+        },
+
+编写页面骨架
+    这部分相当于测试项目能否正常运行，跟着网上的视频教程走就行了
+
+配置路由跳转
+    1. <div class="tab-item">
+            <router-link to="/goods">商品</router-link>
+        </div>
+        <router-link> 和<router-view>来对应点击和显示部分。
+        <router-link> 就是定义页面中点击的部分，<router-view> 定义显示部分，就是点击后，
+        区配的内容显示在什么地方。所以 <router-link> 还有一个非常重要的属性 to，定义点击之后，要到哪里去
+    2. 在main.js中配置路由
+        const routes = [
+          {path: '/goods', component: goods},
+          {path: '/ratings', component: ratings},
+          {path: '/seller', component: seller}
+        ];
+
+        const router = new VueRouter({
+          routes,
+          linkActiveClass: 'active'
+        });
+        new Vue({
+          router,
+          render: (h) => h(app)
+        }).$mount('#app');
+
+使用手机调试
+    1. 在项目文件夹中打开config目录下的index.js文件，找到host: 'localhost'，修改为host: '0.0.0.0'
+    2. 打开cmd，输入ipconfig，获取到ip后，在地址栏将localhost:8080，改为本机ip:8080
+    3. 将地址复制到草料二维码生成二维码，用手机扫码即可实现连接
+    4. 注意：这个操作需要电脑和手机连接到同一个wifi中，否则两台设备不会在同一局域网中
+
+配置vue-resource
+    1. cmd进入项目所在目录，输入npm install vue-resource --save
+
+引入mock数据
+    1. 在App.vue的export中添加created方法来获取数据
+      created() {
+      this.$http.get('api/seller').then((response) => {
+        response = response.body; //在vue-resource官方文档中 ，body是一个对象，存有data.json的数据
+        if (response.errno === ERR_OK) {  // ERR_OK是一个常量，用来判断数据是否获取到
+          this.seller = response.data;  // 将请求到的数据存入seller中
+        }
+      });
+    },
+
+编写header.vue文件
+
+    在star.vue文件中，由于vue2.2以上的版本中，当组建使用使用v-for的时候，key必须是设置的
+    也就是说，如果key未定义，则需要在后面加上item.id，即 v-for="item in items" :key="item.id"
+    在v-for中使用未定义的变量是一件很危险的事情，所以要在后面引入key
+
+编写header.vue的过度动画中，需要引进vue2.0以上版本的动画，则将需要过渡的内容用
+<transition name="fade"></transition>包裹起来，对应的css代码则修改为
+background: rgba(7,17,27,0.8) 
+transition: all 0.5s
+&.fade-enter, &.fade-leaver-active
+  opacity: 0
+  background: rgba(7,17,27,0)
+
+编写better-scroll滚动
+    1. v-el在vue2.0被废弃了，要使用ref="name"，在js中引用的格式为this.$refs.name
+    其中，name使用驼峰式命名，不用烤肉串式的，不然会报错
+    2. 这个框架在OnePlus5T的自带浏览器上运行时，会出现头部和尾部的滚动不受限制的问题
+    在同机型的其他浏览器上则正常运行
+    3. 设置左右联动效果时，注意在vue2.0下，
+    <li v-for="(item,index) in goods" :key="item.id" class="menu-item" :class="{'active':currentIndex===index}">
+    一开始没搞明白currentIndex()的返回值，一直卡在这里
+    注意多用console.log()方法来调试，找到数据的传输方式，尽快解决问题
+
+当我们与某些原生库做交互的时候
+    1. 在目标标签上使用ref属性，即添加ref="name"的属性，在js中通过this.$refs来访问到它，就相当于拿到一个原生DOM
+    2. 当我们需要计算一些与DOM相关的计算时，我们一定要保证这个DOM已经渲染了
+    如果没有，则在creaded时使用this.$nextTick(() =>)来渲染
+
+编写购物车组件
+    1. 在payDesc()方法中，return `￥${this.minPrice}元起送`;，return后面的符号是反引号 `，是ES6的语法
+    2. 在addCart()方法的this.food.count没有生效，原因是vue.js的一个特性，当我们给一个观测对象添加不存在的字段的时候，
+    直接给它赋值是不允许的，它的define property检测不到这个属性变化。所以，如果我们想在增加或删除时
+    能检测到它的变化，我们需要用到vue的一个接口 Vue.set(操作对象, '变量名', 值);
+    3. 在编写购物车cart-decrease和cart-add之间的动画时，用vue2.0编写，则要在需要动作的标签前面加上
+    transition标签，如：
+      <transition name="move">
+      <div class="cart-decrease" v-show="food.count>0" @click="decreaseCart">
+        <span class="inner icon-offline"></span>
+      </div>
+    </transition>
+    则在对应的css（stylus）代码中加上
+      &.move-enter-active, &.move-leave-active
+        transition: all 0.3s linear
+      &.move-enter, &.move-leave-active
+        transform: translate3d(24px,0,0)
+        opacity: 0
+        .inner
+          transform: rotate(180deg)
+    4. 在修改了父组件传进来的food对象后（如增加一些属性），该效果会影响到父组件
+    5. 实现添加小球效果【
+goods.vue组件:
+
+在methods添加cartAdd函数
+
+监听v-on:cart-add="cartAdd"，
+
+购物车组件如果提交了'cart-add'事件就调用这个cartAdd函数;
+
+对应cartcontrol.vue中methods下的addCart()函数里的:
+
+this.$emit('cart-add', event.target);
+
+这句话的意思是提交名为'cart-add'的事件给父组件;
+
+```html
+
+  <cartcontrol 
+  :food="food" 
+  v-on:cart-add="cartAdd"
+  >
+  </cartcontrol>
+
+```
+
+```html
+<shopcart 
+  ref="shopcart" 
+  :select-foods="selectFoods" 
+  :delivery-price="seller.deliveryPrice"   
+  :min-price="seller.minPrice"
+  >
+</shopcart>
+```
+
+```ecmascript 6
+methods: {
+　cartAdd (el) {
+    // dom元素更新后执行， 因此此处能正确打印出更改之后的值；
+　  this.$nextTick(() => {
+      // 调用shopcart组件的drop()函数
+　    this.$refs['shopcart'].drop(el);　
+    });
+  }
+}
+```
+ 
+cartcontrol.vue组件:
+
+```javascript
+addCart(event) {
+  if (!event._constructed) {
+    return;
+  }
+  if (!this.food.count) {
+     Vue.set(this.food, 'count', 1);
+  } else {
+      this.food.count++;
+  }
+  this.$emit('cart-add', event.target); 
+  //添加这句，提交'cart-add'事情给父组件，第二个是要传递的参数
+} 
+```
+
+ 
+shopcart.vue组件:
+
+```javascript
+methods: {
+    drop(el) {
+        console.log(el); // 点击加号看是否输出成功
+    }
+}
+```
+
+子组件向父组件传递过程梳理：
+
+子组件cartcontrol的addCart()里,
+
+用this.$emit('cart-add',event.target)方法获取<添加按钮>,
+
+并把这个DOM元素以'cart-add'名字传递给父组件goods;
+
+父组件goods用v-on:cart-add="cartAdd"监听传来的cart-add事件，
+
+监听到就调用cartAdd()函数处理;
+
+cartAdd()函数里这句this.$refs['shopcart'].drop(el);
+
+调用shopcart.vue组件的drop()函数,看是否打印出当前参数．
+】
+
+    6. 在父组件调用子组件的方法与访问ＤＯＭ的区别
+
+    7. 绘制抛出小球效果：
+        1）注意drop()函数里面的for循环条件是balls.length
+        2）vue的进入离开动画中注意绑定事件（钩子函数）的使用，详见官方文档 
+    8. 编写shopcart-list组件时
+        1）按照教程的做法，如果把listScroll写在listShow里面，则最终的totalCount值会
+        出现异常，会导致在组件内点击添加出现累加的值越来越大。最终的解决办法是将
+        滑动效果与listShow分开写，将滑动效果写成一个函数，在listShow函数中用this.listScr()来调用它
+    9. 给shopcartlist添加小球动画
+        在组件中：<cartcontrol :food="food" @cart-add="cartAdd"></cartcontrol>
+        在js中添加cartAdd函数
+        cartAdd(el) {
+            // DOM元素更新后执行，因此此处能正确打印出更改后的值
+            this.$nextTick(() => {
+              /* 调用shopcart组件的drop()函数，使用异步加载是为了优化体验，
+              否则两个动画一起进行很消耗性能，造成卡顿 */
+              this.drop(el);
+            });
+          }
+        }
+    还有另外一种方法：
+    created() {
+        this.$root.$on('add_cart', this.drop);
+      }
+    这种方法我没有尝试过，这种方法是直接在created中引用父组件的方法
+
+编写ratingselect.vue时
+    1. 选择“全部”“推荐”“吐槽”三个点击事件点击时，会发生“Avoid mutating a prop directly 
+    since the value will be overwritten whenever the parent component re-renders. Instead, 
+    use a data or computed property based on the prop's value. Prop being mutated: "selectType"”
+    的报错
+    解决方法：在ratingselect.vue的select点击事件，添加一个方法，让这个组件派发一个事件
+    ($emit('父组件自定义事件名', 值))
+    在父组件中添加一个自定义事件来监听子组件派发的事件，然后用一个方法来修改selectType数据
+
+编写seller.vue页面
+ Δ 1. 在设置页面滑动时，由于最外层的div class="seller"忘记设置bottom，导致出现滚动条，页面滑动无效
+    等问题
+    2. 页面滑动效果与前面的页面的实现方式有改变，在seller.vue页面中，先在methods编写一个函数_initScroll()
+    再在mounted和watch中分别再实现这个函数。mounted中是直接执行，watch中是检测到数据变化再执行
+    3. 将已选择的收藏写入localStorage缓存中。
+    从App.vue中data()的seller改成直接在seller.vue的methods中的toggleFavorite()函数里面写
+        let storage = window.localStorage;
+        storage.favorite = this.favorite;
+    然后在data()的favorite里写一个闭包函数
+        favorite: (() => {
+          if (!window.localStorage.favorite) {
+            return false;
+          } else {
+            let favorite = JSON.parse(window.localStorage.favorite);
+            return favorite || false;
+          }
+        })()
