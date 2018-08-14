@@ -22,5 +22,10 @@ For a detailed explanation on how things work, check out the [guide](http://vuej
 # 基于vue2.x的一个webAPP项目
 ```bash
 # 环境依赖
-node.js v6.9.4
-vue.js 2.9.6
+node.js: v6.9.4
+vue: ^2.9.6
+vue-resource: ^1.5.1
+vue-router: ^3.0.1
+better-scroll: ^1.12.6
+
+上面的环境依赖可以在项目目录下的package.json文件中进行配置
