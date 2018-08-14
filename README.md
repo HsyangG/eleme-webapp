@@ -28,4 +28,5 @@ vue-resource: ^1.5.1
 vue-router: ^3.0.1
 better-scroll: ^1.12.6
 
-上面的环境依赖可以在项目目录下的package.json文件中进行配置
+上面的环境依赖可以在项目目录下的package.json文件中的dependencies属性里面进行配置。
+配置完成后在cmd中进入到项目文件夹，通过npm install进行安装配置
