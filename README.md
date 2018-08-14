@@ -20,3 +20,7 @@ npm run build --report
 
 For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
 # 基于vue2.x的一个webAPP项目
+```bash
+# 环境依赖
+node.js v6.9.4
+vue.js 2.9.6
